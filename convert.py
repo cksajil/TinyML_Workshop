@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 
 
@@ -30,4 +31,8 @@ with open("stft.tflite", "wb") as f:
 # Print the signatures from the converted model
 interpreter = tf.lite.Interpreter(model_content=tflite_model)
 signatures = interpreter.get_signature_list()
-print(signatures)
+# print(signatures)
+
+MODEL_TFLITE = "stft.tflite"
+MODEL_TFLITE_MICRO = "spectrogram.cc"
+# xxd -i stft.tflite > spectrogram.cc
