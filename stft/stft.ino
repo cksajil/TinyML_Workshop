@@ -24,12 +24,14 @@ namespace
 }
 
 void setup()
-{
+{   
+    delay(3000);
     Serial.begin(9600);
     static tflite::MicroErrorReporter micro_error_reporter;
     error_reporter = &micro_error_reporter;
 
     const tflite::Model *model = ::tflite::GetModel(model);
+
     if (model->version() != TFLITE_SCHEMA_VERSION)
     {
         TF_LITE_REPORT_ERROR(error_reporter,
@@ -61,7 +63,17 @@ void setup()
 
 void loop()
 {
-    float temperature[] = {1., 2., 3., 4., 5., 6., 7., 8., 9.};
+    float temperature[] = {
+        103,
+        78,
+        64,
+        76,
+        75,
+        54,
+        53,
+        67,
+        77,
+        60};
 
     // input tensor
     for (int i = 0; i < 9; i++)
