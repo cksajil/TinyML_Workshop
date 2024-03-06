@@ -25,7 +25,7 @@ namespace
 
 void setup()
 {   
-    delay(3000);
+    delay(10000);
     Serial.begin(9600);
     static tflite::MicroErrorReporter micro_error_reporter;
     error_reporter = &micro_error_reporter;
