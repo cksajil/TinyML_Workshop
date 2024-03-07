@@ -21,7 +21,7 @@ q15_t processed_window_q15[WINDOW_SIZE];
 
 arm_rfft_instance_q15 S_q15;
 
-// this is twice the size because each FFT output has a real and imaginary part
+// This is twice the size because each FFT output has a real and imaginary part
 q15_t fft_q15[WINDOW_SIZE * 2];
 
 // this is half the size of WINDOW_SIZE becase we just need the magnitude from
