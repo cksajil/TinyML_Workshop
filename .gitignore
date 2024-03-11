@@ -8,5 +8,9 @@ __pycache__/
 # Ignore virtual environment
 venv/
 
+# Igonote file locations
+saved_models/
+.vscode/
+
 # Ignore jupyter checkpoint
 .ipynb_checkpoints/
