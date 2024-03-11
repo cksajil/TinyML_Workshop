@@ -1,94 +1,51 @@
-#include <TensorFlowLite.h>
+#include <Arduino.h>
 #include "model.h"
+
+#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 
-// / Globals, used for compatibility with Arduino-style sketches.
-namespace
-{
-    tflite::ErrorReporter *error_reporter = nullptr;
-    const tflite::Model *model = nullptr;
-    tflite::MicroInterpreter *interpreter = nullptr;
-    TfLiteTensor *model_input = nullptr;
-    TfLiteTensor *model_output = nullptr;
-
-    // Create an area of memory to use for input, output, and intermediate arrays.
-    // The size of this will depend on the model you're using, and may need to be
-    // determined by experimentation.
-    constexpr int kTensorArenaSize = 10 * 1024;
-    uint8_t tensor_arena[kTensorArenaSize];
-    int8_t *model_input_buffer = nullptr;
-}
+// Define your test input array
+float test_input[61][129];
 
 void setup()
-{   
-    delay(10000);
+{
+    // Initialize serial communication
     Serial.begin(9600);
+
+    // Initialize TensorFlow Lite interpreter
     static tflite::MicroErrorReporter micro_error_reporter;
-    error_reporter = &micro_error_reporter;
+    static tflite::AllOpsResolver resolver;
+    static tflite::MicroInterpreter interpreter(model_data, resolver, micro_error_reporter);
+    interpreter.AllocateTensors();
 
-    const tflite::Model *model = ::tflite::GetModel(model);
+    // Perform inference on the test input array
+    TfLiteTensor *input = interpreter.input(0);
+    TfLiteTensor *output = interpreter.output(0);
 
-    if (model->version() != TFLITE_SCHEMA_VERSION)
+    // Load test input into input tensor
+    for (int i = 0; i < 61; i++)
     {
-        TF_LITE_REPORT_ERROR(error_reporter,
-                             "Model provided is schema version %d not equal "
-                             "to supported version %d.",
-                             model->version(), TFLITE_SCHEMA_VERSION);
-        return;
+        for (int j = 0; j < 129; j++)
+        {
+            input->data.f[i * 129 + j] = test_input[i][j];
+        }
     }
 
-    static tflite::MicroMutableOpResolver<5> micro_op_resolver(error_reporter);
+    // Invoke interpreter
+    interpreter.Invoke();
 
-    // Build an interpreter to run the model with.
-    static tflite::MicroInterpreter static_interpreter(
-        model, micro_op_resolver, tensor_arena, kTensorArenaSize, error_reporter);
-    interpreter = &static_interpreter;
-
-    // Allocate memory from the tensor_arena for the model's tensors.
-    TfLiteStatus allocate_status = interpreter->AllocateTensors();
-    if (allocate_status != kTfLiteOk)
+    // Print inference results
+    for (int i = 0; i < output->dims->data[0]; i++)
     {
-        TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
-        return;
+        Serial.print(output->data.f[i]);
+        Serial.print(" ");
     }
-
-    // Get information about the memory area to use for the model's input.
-    model_input = interpreter->input(0);
-    model_output = interpreter->output(0);
 }
 
 void loop()
 {
-    float temperature[] = {
-        103,
-        78,
-        64,
-        76,
-        75,
-        54,
-        53,
-        67,
-        77,
-        60};
-
-    // input tensor
-    for (int i = 0; i < 9; i++)
-    {
-        model_input->data.f[i] = temperature[i];
-    }
-
-    TfLiteStatus invokeStatus = interpreter->Invoke();
-    if (invokeStatus != kTfLiteOk)
-    {
-        Serial.println("Invoke failed!");
-        while (1)
-            ;
-        return;
-    }
-
-    Serial.println(model_output->data.f[0]);
+    // Nothing to do here as we only perform inference once in setup
 }
