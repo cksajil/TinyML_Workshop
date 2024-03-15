@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "model.h"
-
+#include <TensorFlowLite.h>
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
