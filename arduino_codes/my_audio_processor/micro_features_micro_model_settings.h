@@ -31,7 +31,7 @@ constexpr int kFeatureSliceSize = 40;
 constexpr int kFeatureSliceCount = 49;
 constexpr int kFeatureElementCount = (kFeatureSliceSize * kFeatureSliceCount);
 constexpr int kFeatureSliceStrideMs = 20;
-constexpr int kFeatureSliceDurationMs = 30;
+constexpr int kFeatureSliceDurationMs = 16;
 
 // Variables for the model's output categories.
 constexpr int kSilenceIndex = 0;

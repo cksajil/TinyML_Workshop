@@ -41,7 +41,7 @@ void loop()
     const int32_t current_time = LatestAudioTimestamp();
     int how_many_new_slices = 0;
 
-    MicroPrintf("Sajil is trying to print features computed");
+    // MicroPrintf("Sajil is trying to print features computed");
 
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
         previous_time, current_time, &how_many_new_slices);
@@ -58,8 +58,8 @@ void loop()
         return;
     }
 
-    for (int i = 0; i < kFeatureElementCount; i++)
-    {
-        MicroPrintf("%d", feature_buffer[i]);
-    }
+    // for (int i = 0; i < kFeatureElementCount; i++)
+    // {
+    //     MicroPrintf("%d", feature_buffer[i]);
+    // }
 }

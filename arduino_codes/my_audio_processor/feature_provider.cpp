@@ -13,12 +13,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <arm_math.h>
 #include "feature_provider.h"
 
 #include "audio_provider.h"
 #include "micro_features_micro_features_generator.h"
 #include "micro_features_micro_model_settings.h"
 #include "tensorflow/lite/micro/micro_log.h"
+
+const int WINDOW_SIZE = 256;
+float32_t sampleBuffer[WINDOW_SIZE];
+
+q15_t input_q15[WINDOW_SIZE];
+q15_t hanning_window_q15[WINDOW_SIZE];
+q15_t processed_window_q15[WINDOW_SIZE];
+
+arm_rfft_instance_q15 S_q15;
+q15_t fft_q15[WINDOW_SIZE * 2];
+q15_t fft_mag_q15[WINDOW_SIZE / 2];
+
+void hanning_window_init_q15(q15_t *hanning_window_q15, size_t size)
+{
+  for (size_t i = 0; i < size; i++)
+  {
+    // calculate the Hanning Window value for i as a float32_t
+    float32_t f = 0.5 * (1.0 - arm_cos_f32(2 * PI * i / size));
+
+    // convert value for index i from float32_t to q15_t and store
+    // in window at position i
+    arm_float_to_q15(&f, &hanning_window_q15[i], 1);
+  }
+}
 
 FeatureProvider::FeatureProvider(int feature_size, int8_t *feature_data)
     : feature_size_(feature_size),
@@ -38,7 +63,10 @@ TfLiteStatus FeatureProvider::PopulateFeatureData(int32_t last_time_in_ms,
                                                   int32_t time_in_ms,
                                                   int *how_many_new_slices)
 {
-  MicroPrintf("Inside Feature Provider");
+  // MicroPrintf("Inside Feature Provider");
+
+  hanning_window_init_q15(hanning_window_q15, WINDOW_SIZE);
+  arm_rfft_init_q15(&S_q15, WINDOW_SIZE, 0, 1);
 
   if (feature_size_ != kFeatureElementCount)
   {
@@ -134,21 +162,49 @@ TfLiteStatus FeatureProvider::PopulateFeatureData(int32_t last_time_in_ms,
       // MicroPrintf("Got Audio Samples");
 
       // // Code to print raw audio samples
+      // for (int i = 0; i < audio_samples_size; i++)
+      // {
+      //   MicroPrintf("%d", audio_samples[i]);
+      // }
+
       for (int i = 0; i < audio_samples_size; i++)
       {
-        MicroPrintf("%d", audio_samples[i]);
+        sampleBuffer[i] = audio_samples[i];
       }
+
+      for (int i = 0; i < audio_samples_size; i++)
+      {
+        arm_float_to_q15(&sampleBuffer[i], &input_q15[i], 1);
+      }
+
+      arm_mult_q15(input_q15, hanning_window_q15, processed_window_q15, WINDOW_SIZE);
+      // calculate the FFT and FFT magnitude
+      arm_rfft_q15(&S_q15, processed_window_q15, fft_q15);
+      arm_cmplx_mag_q15(fft_q15, fft_mag_q15, WINDOW_SIZE / 2);
+
+      //  Maggitude of FFT computed is available in fftComputed
+      for (int i = 0; i < WINDOW_SIZE; i++)
+      {
+        MicroPrintf("%d", fft_mag_q15[i]);
+      }
+
+      // for (int i = 0; i < audio_samples_size; i++)
+      // {
+      //   MicroPrintf("%f", sampleBuffer[i]);
+      // }
+
+      // MicroPrintf("Conversion success for audio samples");
 
       // // Code to print size of audio samples (sampling_rate*30ms)
       // MicroPrintf("%d", audio_samples_size);
 
-      TfLiteStatus generate_status = GenerateMicroFeatures(
-          audio_samples, audio_samples_size, kFeatureSliceSize, new_slice_data,
-          &num_samples_read);
-      if (generate_status != kTfLiteOk)
-      {
-        return generate_status;
-      }
+      // TfLiteStatus generate_status = GenerateMicroFeatures(
+      //     audio_samples, audio_samples_size, kFeatureSliceSize, new_slice_data,
+      //     &num_samples_read);
+      // if (generate_status != kTfLiteOk)
+      // {
+      //   return generate_status;
+      // }
     }
   }
   return kTfLiteOk;
