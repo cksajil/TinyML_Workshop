@@ -57,4 +57,9 @@ void loop()
     {
         return;
     }
+
+    for (int i = 0; i < kFeatureElementCount; i++)
+    {
+        MicroPrintf("%d", feature_buffer[i]);
+    }
 }

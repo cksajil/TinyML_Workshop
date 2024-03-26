@@ -141,6 +141,14 @@ TfLiteStatus FeatureProvider::PopulateFeatureData(int32_t last_time_in_ms,
 
       // // Code to print size of audio samples (sampling_rate*30ms)
       // MicroPrintf("%d", audio_samples_size);
+
+      TfLiteStatus generate_status = GenerateMicroFeatures(
+          audio_samples, audio_samples_size, kFeatureSliceSize, new_slice_data,
+          &num_samples_read);
+      if (generate_status != kTfLiteOk)
+      {
+        return generate_status;
+      }
     }
   }
   return kTfLiteOk;
