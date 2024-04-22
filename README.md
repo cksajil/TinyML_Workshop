@@ -1,5 +1,5 @@
 # TinyML_Workshop
-This repository contains the instruction setup, supporting code and associated documents for TinyML Workshop. The following table shows the details of projects, domain hardware/platforms/libraries required.
+This repository contains the instruction setup, supporting code and associated documents for TinyML Workshop. End to End instructions are provided for building tinyML projects across various domains including Deep Learning, AudioML, and Computer Vision. The following table shows the details of projects, domain hardware/platforms/libraries required.
 
 | No. | Project Name                | Domain          | Hardware               | Platform            | Libraries                                  |
 |-----|-----------------------------|-----------------|------------------------|---------------------|--------------------------------------------|
