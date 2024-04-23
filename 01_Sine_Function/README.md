@@ -11,3 +11,4 @@ In this project, we will be approximatiing the sine function using a Deep Neural
 - Arduino IDE
  
 ## Source Code
+[Google Colab Notebook](https://colab.research.google.com/drive/1ovs6OWylO7j7SzUe_pXFH1Fz9hbY0JdF?usp=sharing)
