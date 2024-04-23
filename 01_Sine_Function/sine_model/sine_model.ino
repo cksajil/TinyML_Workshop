@@ -77,10 +77,10 @@ void loop()
 
         float x = 2 * PI * sinFrequency * i / numSamples;
 
-        // Library Implementation of Sin Function
+        // Library Implementation of Sine Function
         // float y_pred = sin(x);
 
-        // ML Approximation of Sin Function
+        // ML Approximation of Sine Function
         model_input->data.f[0] = x;
 
         TfLiteStatus invoke_status = interpreter->Invoke();
