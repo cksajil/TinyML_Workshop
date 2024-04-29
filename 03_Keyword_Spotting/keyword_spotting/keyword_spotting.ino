@@ -9,9 +9,11 @@
 #include <tensorflow/lite/micro/system_setup.h>
 #include <tensorflow/lite/schema/schema_generated.h>
 
-#define SAMPLES 512
+#define SAMPLES 1024
 #define SAMPLING_FREQUENCY 16000
 
+volatile int yesCounter;
+volatile int noCounter;
 short sampleBuffer[SAMPLES];
 float32_t sampleBufferFloat[SAMPLES];
 volatile int samplesRead;
@@ -19,7 +21,7 @@ volatile int samplesRead;
 void onPDMdata(void);
 
 static const char CHANNELS = 1;
-const int WINDOW_SIZE = 256;
+const int WINDOW_SIZE = 1024;
 
 q15_t input_q15[WINDOW_SIZE];
 q15_t hanning_window_q15[WINDOW_SIZE];
@@ -55,7 +57,7 @@ namespace
     // Create an area of memory to use for input, output, and intermediate arrays.
     // The size of this will depend on the model you're using, and may need to be
     // determined by experimentation.
-    constexpr int kTensorArenaSize = 31 * 2048;
+    constexpr int kTensorArenaSize = 60 * 2048;
     uint8_t tensor_arena[kTensorArenaSize];
 }
 
@@ -108,10 +110,12 @@ void setup()
     // pipeline initialization
     hanning_window_init_q15(hanning_window_q15, WINDOW_SIZE);
     arm_rfft_init_q15(&S_q15, WINDOW_SIZE, 0, 1);
+    yesCounter = 0;
+    noCounter = 0;
 }
 
 void loop()
-{
+{   
     if (samplesRead)
     {
         for (int i = 0; i < samplesRead; i++)
@@ -153,12 +157,17 @@ void loop()
         samplesRead = 0;
     }
 
-    for (int i = 0; i < ROWS; i++)
+    // for (int i = 0; i < ROWS; i++)
+    // {
+    //     for (int j = 0; j < COLS; j++)
+    //     {
+    //         model_input->data.f[i * COLS + j] = static_cast<float32_t>(fft_mag_q15[j]);
+    //     }
+    // }
+
+    for (int i = 0; i < WINDOW_SIZE; i++)
     {
-        for (int j = 0; j < COLS; j++)
-        {
-            model_input->data.f[i * COLS + j] = static_cast<float32_t>(fft_mag_q15[j]);
-        }
+        model_input->data.f[i] = static_cast<float32_t>(fft_mag_q15[i]);
     }
 
     TfLiteStatus invoke_status = interpreter->Invoke();
@@ -168,9 +177,30 @@ void loop()
         return;
     }
 
-    float pred = model_output->data.f[0];
-    Serial.print("Class predicted: ");
-    Serial.println(pred);
+    float pred_0 = model_output->data.f[0];
+    float pred_1 = model_output->data.f[1];
+
+    if (pred_0 == 1.0)
+    {
+      yesCounter = yesCounter+1;
+    }
+    else
+    {
+      noCounter = noCounter+1;
+    }
+
+    if (yesCounter>200)
+    {
+        Serial.println("Class predicted is Yes ");
+        yesCounter = 0;
+    }
+
+    if (noCounter>200)
+    {
+        Serial.println("Class predicted is No ");
+        noCounter = 0;
+    }
+
 }
 
 void hanning_window_init_q15(q15_t *hanning_window_q15, size_t size)
