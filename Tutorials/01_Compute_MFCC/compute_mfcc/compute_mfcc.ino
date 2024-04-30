@@ -1,19 +1,20 @@
 #include <PDM.h>
 #include "mfcc.h"
 
-#define SAMPLES 160
+#define SAMPLES 320
 #define SAMPLING_FREQUENCY 16000
-#define NUM_FRAMES 100
-#define NUM_MFCC_COEFFS 13
+#define NUM_FRAMES 150
+#define NUM_MFCC_COEFFS 10
 #define MFCC_DEC_BITS 4
-#define FRAME_SHIFT_MS 30
+#define FRAME_SHIFT_MS 20
 #define FRAME_SHIFT ((int16_t)(SAMPLING_FREQUENCY * 0.001 * FRAME_SHIFT_MS))
 #define MFCC_BUFFER_SIZE (NUM_FRAMES * NUM_MFCC_COEFFS)
-#define FRAME_LEN_MS 30
+#define FRAME_LEN_MS 20
 #define FRAME_LEN ((int16_t)(SAMPLING_FREQUENCY * 0.001 * FRAME_LEN_MS))
 
+int recording_win = NUM_FRAMES;
 short audio_buffer[SAMPLES];
-int recording_win = 100;
+int16_t converted_buffer[SAMPLES];
 volatile int samplesRead;
 
 int num_frames = NUM_FRAMES;
@@ -51,7 +52,11 @@ void loop()
 {
     if (samplesRead)
     {
-        extract_features(audio_buffer, mfcc_buffer);
+        for (size_t i = 0; i < SAMPLES; i++)
+        {
+            converted_buffer[i] = (int16_t)audio_buffer[i];
+        }
+        extract_features(converted_buffer, mfcc_buffer);
 
         for (int i = 0; i < MFCC_BUFFER_SIZE; i++)
         {
